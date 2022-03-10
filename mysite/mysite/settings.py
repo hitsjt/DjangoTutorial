@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "RESTuser",
     'polls.apps.PollsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
