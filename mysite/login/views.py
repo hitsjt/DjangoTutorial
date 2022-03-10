@@ -1,6 +1,13 @@
 from django.shortcuts import render, redirect
 from .models import User
 from .forms import UserForm,RegisterForm
+import hashlib
+
+def hash_code(s, salt='mysite'):# 加点盐
+    h = hashlib.sha256()
+    s += salt
+    h.update(s.encode())  # update方法只接收bytes类型
+    return h.hexdigest()
 
 
 def index(request):
@@ -22,7 +29,7 @@ def login(request):
             password = login_form.cleaned_data['password']
             try:
                 user = User.objects.get(name=username)
-                if user.password == password:
+                if user.password == hash_code(password):
                     request.session['is_login'] = True
                     request.session['user_id'] = user.id
                     request.session['user_name'] = user.name
@@ -53,20 +60,20 @@ def register(request):
                 message = "两次输入的密码不同！"
                 return render(request, 'login/register.html', locals())
             else:
-                same_name_user = models.User.objects.filter(name=username)
+                same_name_user = User.objects.filter(name=username)
                 if same_name_user:  # 用户名唯一
                     message = '用户已经存在，请重新选择用户名！'
                     return render(request, 'login/register.html', locals())
-                same_email_user = models.User.objects.filter(email=email)
+                same_email_user = User.objects.filter(email=email)
                 if same_email_user:  # 邮箱地址唯一
                     message = '该邮箱地址已被注册，请使用别的邮箱！'
                     return render(request, 'login/register.html', locals())
 
                 # 当一切都OK的情况下，创建新用户
 
-                new_user = models.User.objects.create()
+                new_user = User.objects.create()
                 new_user.name = username
-                new_user.password = password1
+                new_user.password = hash_code(password1)
                 new_user.email = email
                 new_user.sex = sex
                 new_user.save()
